@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -48,9 +49,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.timer, cmd = m.timer.Update(msg)
 		return m, cmd
 
-	case timer.TimeoutMsg:
-		m.quitting = true
-		return m, tea.Quit
+	// case timer.TimeoutMsg:
+	// 	m.quitting = true
+	// 	return m, tea.Quit
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -70,7 +71,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			log.Printf("%q tea selected, timer duration of %d minutes\n", m.chosenTeaName, m.chosenTeaDuration)
 
 			// returning model and starting timer
-			m.timer = timer.NewWithInterval(time.Minute*time.Duration(selectedTea.timerDuration), time.Second)
+			m.timer = timer.NewWithInterval(time.Second*5, time.Second)
 			return m, m.timer.Init()
 		}
 
@@ -89,17 +90,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 // View
 func (m model) View() string {
 	if m.chosenTeaName != "" {
-		log.Printf("rendering timer page\n")
+		// log.Printf("rendering timer page\n")
 		timerView := m.timer.View()
 
 		if m.timer.Timedout() {
-			log.Printf("timer has timed out\n")
-			timerView = "Tea is ready!"
+			// log.Printf("timer is done\n")
+			timerView = fmt.Sprintf("Your %s tea is done brewing.\n", m.chosenTeaName)
 		}
 		return timerView
 
 	} else {
-		log.Printf("showing list of teas\n")
+		// log.Printf("showing list of teas\n")
 		return listStyle.Render(m.list.View())
 	}
 }
