@@ -1,95 +1,82 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 
+	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
-// import tea "github.com/charmbracelet/bubbletea"
-// bubbletea is always imported as tea.
-// tea was named after 'The Elm Architecture'
+var listStyle = lipgloss.NewStyle().Margin(1, 2)
 
-/*
- * Model is the type that gets used for the Init, Update, and View functions.
- * It should store the apps state and can be or contain any types.
- */
+type teaItem struct {
+	title, description string
+	timerDuration      int
+}
+
+func (ti teaItem) Title() string       { return ti.title }
+func (ti teaItem) Description() string { return ti.description }
+func (ti teaItem) FilterValue() string { return ti.title }
+
 type model struct {
-	// status int
-	// err error
+	list list.Model
 }
 
-/*
- * initialModel should return the model struct when the app starts.
- * This can also be replaced with model{} in the call to tea.NewProgram()
- */
-func initialModel() model {
-	return model{}
-}
-
-/*
- * The Init method can return a tea.Cmd to perform initial I/O.
- * Or, it can just return nil, which means no initial I/O.
- */
+// Init
 func (m model) Init() tea.Cmd {
 	return nil
 }
 
-/*
- * The Update method is a very important one.
- * Update will decide, based on messages passed in, what to do.
- *
- * Any update to the application is a tea.Msg,
- * and is typically interpreted through a switch on its type.
- *
- * model should always be returned, after its been updated.
- */
+// Update
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	// Because tea.Msg is of type Any, it needs type assertions.
-	// These assertions let you decide how to perform actions,
-	// based on its type or value.
-	//
-	// msg.(type) is special syntax only within switch statements.
 	switch msg := msg.(type) {
-
-	// This case checks if the parameter is 'tea.KeyMsg'
 	case tea.KeyMsg:
-		return m, nil
+		switch msg.String() {
+		case "ctrl+c", "q":
+			return m, tea.Quit
+		}
 
-	// This case checks if the parameter is 'MyCustomMsg'
-	case MyCustomMsg:
-		return m, nil
+	case tea.WindowSizeMsg:
+		h, v := listStyle.GetFrameSize()
+		m.list.SetSize(msg.Width-h, msg.Height-v)
 
-	// This case checks if the parameter is an error
-	case error:
-		return m, nil
+	}
 
-	} // You can have a default case, for any remaining types
-
-	// And for any cases that did not return, they can reach the return at the bottom
-	return m, nil
+	var cmd tea.Cmd
+	m.list, cmd = m.list.Update(msg)
+	return m, cmd
 }
 
-/*
- * View decides how to render the UI of the application.
- * Basic apps can just return a formatted string.
- *
- * The model is checked for its state,
- * and based on it, will decide what to show to the user.
- *
- * This is typically where instructions are provided to the user.
- */
+// View
 func (m model) View() string {
-	return ""
+	return listStyle.Render(m.list.View())
 }
 
-// Main is the last necessary function.
-// It will actually start the program and can even intialize state.
+// main
 func main() {
-	p := tea.NewProgram(initialModel())
+	teaItems := []list.Item{
+		teaItem{title: "Black Tea", description: "highest caffeine", timerDuration: 5},
+		teaItem{title: "Green Tea", description: "very delicate", timerDuration: 2},
+		teaItem{title: "Fruit Tea", description: "many flavors", timerDuration: 8},
+	}
+
+	m := model{list: list.New(teaItems, list.NewDefaultDelegate(), 0, 0)}
+
+	// debug log
+	if len(os.Getenv("DEBUG")) > 0 {
+		f, err := tea.LogToFile("debug.log", "debug")
+		if err != nil {
+			log.Println("fatal:", err)
+			os.Exit(1)
+		}
+		defer f.Close()
+	}
+
+	p := tea.NewProgram(m, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
-		fmt.Printf("there was an error: %v\n", err)
+		log.Fatalln("fatal:", err)
 		os.Exit(1)
 	}
 }
