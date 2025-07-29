@@ -59,6 +59,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "enter", " ":
+			// do not start new timer if a tea was already selected
+			if m.chosenTeaName != "" {
+				return m, nil
+			}
+
 			selectedTea, ok := m.list.SelectedItem().(teaItem)
 			if !ok {
 				log.Printf("not able to find in list -> '%v'", m.list.SelectedItem())
@@ -91,11 +96,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	if m.chosenTeaName != "" {
 		// log.Printf("rendering timer page\n")
-		timerView := m.timer.View()
+		timerView := timerStyle.Render(m.timer.View())
 
 		if m.timer.Timedout() {
 			// log.Printf("timer is done\n")
-			timerView = fmt.Sprintf("Your %s tea is done brewing.\n", m.chosenTeaName)
+			s := fmt.Sprintf("Your %s tea is done brewing.\n", m.chosenTeaName)
+			timerView = timerStyle.Render(s)
 		}
 		return timerView
 
