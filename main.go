@@ -167,14 +167,14 @@ func main() {
 	}
 
 	// debug log
-	if len(os.Getenv("DEBUG")) > 0 {
-		file, err := tea.LogToFile("debug.log", "debug")
-		if err != nil {
-			log.Println("fatal:", err)
-			os.Exit(1)
-		}
-		defer file.Close()
-	}
+	// if len(os.Getenv("DEBUG")) > 0 {
+	// 	file, err := tea.LogToFile("debug.log", "debug")
+	// 	if err != nil {
+	// 		log.Println("fatal:", err)
+	// 		os.Exit(1)
+	// 	}
+	// 	defer file.Close()
+	// }
 
 	program := tea.NewProgram(model, tea.WithAltScreen())
 	if _, err := program.Run(); err != nil {
