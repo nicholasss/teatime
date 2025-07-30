@@ -82,14 +82,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			selectedTea, ok := m.list.SelectedItem().(teaItem)
 			if !ok {
-				log.Printf("not able to find in list -> '%v'", m.list.SelectedItem())
+				// log.Printf("not able to find in list -> '%v'", m.list.SelectedItem())
 				return m, nil
 			}
 
 			m.chosenTeaName = selectedTea.title
 			m.chosenTeaDesc = selectedTea.description
 			m.chosenTeaDuration = selectedTea.timerDuration
-			log.Printf("%q tea selected, timer duration of %d minutes\n", m.chosenTeaName, m.chosenTeaDuration)
+			// log.Printf("%q tea selected, timer duration of %d minutes\n", m.chosenTeaName, m.chosenTeaDuration)
 
 			// returning model and starting timer
 			teaTimerDuration := time.Minute * time.Duration(m.chosenTeaDuration)
