@@ -15,7 +15,7 @@ import (
 
 var (
 	listStyle  = lipgloss.NewStyle().Margin(1, 2)
-	timerStyle = lipgloss.NewStyle().Margin(1, 2).Width(37).Align(lipgloss.Center)
+	timerStyle = lipgloss.NewStyle().Margin(1, 1)
 
 	titleStyle = lipgloss.NewStyle().
 			MarginLeft(2).
@@ -106,6 +106,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		h, v := listStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
 
+		padding := 2
+		maxWidth := 80
+		m.timerProgress.Width = msg.Width - padding*2 - 4
+		m.timerProgress.Width = min(m.timerProgress.Width, maxWidth)
 	}
 
 	var cmd tea.Cmd
