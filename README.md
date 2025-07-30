@@ -8,4 +8,4 @@ The selection of teas, along with their temperature and time can be modified.
 
 Simply clone the directory run `go mod tidy` and `go run .`
 
-In order to install run `go install github.com/nicholasss/teatime`
+In order to install run `go install github.com/nicholasss/teatime@latest`
