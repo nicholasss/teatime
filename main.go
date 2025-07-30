@@ -15,7 +15,7 @@ import (
 
 var (
 	listStyle  = lipgloss.NewStyle().Margin(1, 2)
-	timerStyle = lipgloss.NewStyle().Margin(1, 18)
+	timerStyle = lipgloss.NewStyle().Margin(1, 2).Width(37).Align(lipgloss.Center)
 
 	titleStyle = lipgloss.NewStyle().
 			MarginLeft(2).
@@ -42,6 +42,8 @@ type model struct {
 	chosenTeaDesc     string
 	chosenTeaDuration int
 	timer             timer.Model
+	timerAt           int
+	timerPercentage   float64
 	quitting          bool
 	timerProgress     progress.Model
 }
@@ -56,6 +58,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case timer.TickMsg:
+
+		if m.timer.Running() && m.chosenTeaName != "" {
+			m.timerAt += 1
+			totalSeconds := 60 * m.chosenTeaDuration
+			m.timerPercentage = float64(m.timerAt) / float64(totalSeconds)
+		}
+
 		var cmd tea.Cmd
 		m.timer, cmd = m.timer.Update(msg)
 		return m, cmd
@@ -111,12 +120,13 @@ func (m model) View() string {
 		var timerView string
 
 		if m.timer.Timedout() {
-			doneText := fmt.Sprintf("Your %s tea is done brewing.\n", m.chosenTeaName)
-			return timerStyle.Render(doneText)
+			doneText := fmt.Sprintf("Your %s tea is done brewing.", m.chosenTeaName)
+			completeProgressView := m.timerProgress.ViewAs(m.timerPercentage)
+			return timerStyle.Render(doneText) + "\n " + completeProgressView
 		}
 
 		timerView = timerStyle.Render(m.timer.View())
-		progressView := m.timerProgress.View()
+		progressView := m.timerProgress.ViewAs(m.timerPercentage)
 		return timerView + "\n " + progressView
 
 	}
@@ -127,6 +137,7 @@ func (m model) View() string {
 // main
 func main() {
 	teaItems := []list.Item{
+		teaItem{title: "TEST Tea", description: "100C for 1 minutes", timerDuration: 1},
 		teaItem{title: "Black Tea", description: "100C for 5 minutes", timerDuration: 5},
 		teaItem{title: "Green Tea", description: "80C for 3 minutes", timerDuration: 3},
 		teaItem{title: "Herbal Tea", description: "85C for 8 minutes", timerDuration: 8},
@@ -146,7 +157,7 @@ func main() {
 	list.Styles.HelpStyle = helpStyle
 
 	progress := progress.New(
-		progress.WithSolidFill("10"),
+		progress.WithDefaultGradient(),
 		progress.WithoutPercentage(),
 	)
 
