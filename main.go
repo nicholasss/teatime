@@ -69,10 +69,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.timer, cmd = m.timer.Update(msg)
 		return m, cmd
 
-	// case timer.TimeoutMsg:
-	// 	m.quitting = true
-	// 	return m, tea.Quit
-
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -101,7 +97,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, m.timer.Init()
 		}
 
-	// used by list on directly from Init
 	case tea.WindowSizeMsg:
 		h, v := listStyle.GetFrameSize()
 		m.list.SetSize(msg.Width-h, msg.Height-v)
@@ -141,11 +136,12 @@ func (m model) View() string {
 // main
 func main() {
 	teaItems := []list.Item{
-		teaItem{title: "TEST Tea", description: "100C for 1 minutes", timerDuration: 1},
-		teaItem{title: "Black Tea", description: "100C for 5 minutes", timerDuration: 5},
-		teaItem{title: "Green Tea", description: "80C for 3 minutes", timerDuration: 3},
-		teaItem{title: "Herbal Tea", description: "85C for 8 minutes", timerDuration: 8},
-		teaItem{title: "Oolong Tea", description: "85C for 4 mintues", timerDuration: 4},
+		teaItem{title: "Black Tea", description: "95C for 5 minutes", timerDuration: 5},
+		teaItem{title: "Green Tea", description: "75C for 3 minutes", timerDuration: 3},
+		teaItem{title: "Oolong Tea", description: "90C for 4 mintues", timerDuration: 4},
+		teaItem{title: "White Tea", description: "80C for 3 mintues", timerDuration: 3},
+		teaItem{title: "Herbal Tea", description: "100C for 8 minutes", timerDuration: 8},
+		teaItem{title: "Rooibos Tea", description: "100C for 8 minutes", timerDuration: 8},
 	}
 
 	list := list.New(
