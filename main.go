@@ -15,6 +15,15 @@ import (
 var (
 	listStyle  = lipgloss.NewStyle().Margin(1, 2)
 	timerStyle = lipgloss.NewStyle().Margin(1, 2)
+
+	titleStyle = lipgloss.NewStyle().
+			MarginLeft(2).
+			Bold(true)
+	paginationStyle = list.DefaultStyles().PaginationStyle.
+			PaddingLeft(4)
+	helpStyle = list.DefaultStyles().HelpStyle.
+			PaddingLeft(4).
+			PaddingBottom(1)
 )
 
 type teaItem struct {
@@ -76,7 +85,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			log.Printf("%q tea selected, timer duration of %d minutes\n", m.chosenTeaName, m.chosenTeaDuration)
 
 			// returning model and starting timer
-			m.timer = timer.NewWithInterval(time.Second*5, time.Second)
+			teaTimerDuration := time.Minute * time.Duration(m.chosenTeaDuration)
+			m.timer = timer.NewWithInterval(teaTimerDuration, time.Second)
 			return m, m.timer.Init()
 		}
 
@@ -94,21 +104,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View
 func (m model) View() string {
+	// timer view
 	if m.chosenTeaName != "" {
-		// log.Printf("rendering timer page\n")
 		timerView := timerStyle.Render(m.timer.View())
 
 		if m.timer.Timedout() {
-			// log.Printf("timer is done\n")
 			s := fmt.Sprintf("Your %s tea is done brewing.\n", m.chosenTeaName)
 			timerView = timerStyle.Render(s)
 		}
 		return timerView
 
-	} else {
-		// log.Printf("showing list of teas\n")
-		return listStyle.Render(m.list.View())
 	}
+	// list view
+	return listStyle.Render(m.list.View())
 }
 
 // main
@@ -120,9 +128,19 @@ func main() {
 		teaItem{title: "Oolong Tea", description: "85C for 4 mintues", timerDuration: 4},
 	}
 
-	m := model{list: list.New(teaItems, list.NewDefaultDelegate(), 0, 0), chosenTeaName: ""}
+	l := list.New(
+		teaItems,
+		list.NewDefaultDelegate(),
+		9, 0,
+	)
 
-	m.list.Title = "Tea Timers"
+	l.Title = "Tea Timer Options"
+	l.SetShowStatusBar(false)
+	l.Styles.Title = titleStyle
+	l.Styles.PaginationStyle = paginationStyle
+	l.Styles.HelpStyle = helpStyle
+
+	m := model{list: l}
 
 	// debug log
 	if len(os.Getenv("DEBUG")) > 0 {
