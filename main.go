@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/bubbles/list"
+	"github.com/charmbracelet/bubbles/progress"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -14,7 +15,7 @@ import (
 
 var (
 	listStyle  = lipgloss.NewStyle().Margin(1, 2)
-	timerStyle = lipgloss.NewStyle().Margin(1, 2)
+	timerStyle = lipgloss.NewStyle().Margin(1, 18)
 
 	titleStyle = lipgloss.NewStyle().
 			MarginLeft(2).
@@ -42,6 +43,7 @@ type model struct {
 	chosenTeaDuration int
 	timer             timer.Model
 	quitting          bool
+	timerProgress     progress.Model
 }
 
 // Init
@@ -106,13 +108,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() string {
 	// timer view
 	if m.chosenTeaName != "" {
-		timerView := timerStyle.Render(m.timer.View())
+		var timerView string
 
 		if m.timer.Timedout() {
-			s := fmt.Sprintf("Your %s tea is done brewing.\n", m.chosenTeaName)
-			timerView = timerStyle.Render(s)
+			doneText := fmt.Sprintf("Your %s tea is done brewing.\n", m.chosenTeaName)
+			return timerStyle.Render(doneText)
 		}
-		return timerView
+
+		timerView = timerStyle.Render(m.timer.View())
+		progressView := m.timerProgress.View()
+		return timerView + "\n " + progressView
 
 	}
 	// list view
@@ -128,32 +133,40 @@ func main() {
 		teaItem{title: "Oolong Tea", description: "85C for 4 mintues", timerDuration: 4},
 	}
 
-	l := list.New(
+	list := list.New(
 		teaItems,
 		list.NewDefaultDelegate(),
 		9, 0,
 	)
 
-	l.Title = "Tea Timer Options"
-	l.SetShowStatusBar(false)
-	l.Styles.Title = titleStyle
-	l.Styles.PaginationStyle = paginationStyle
-	l.Styles.HelpStyle = helpStyle
+	list.Title = "Tea Timer Options"
+	list.SetShowStatusBar(false)
+	list.Styles.Title = titleStyle
+	list.Styles.PaginationStyle = paginationStyle
+	list.Styles.HelpStyle = helpStyle
 
-	m := model{list: l}
+	progress := progress.New(
+		progress.WithSolidFill("10"),
+		progress.WithoutPercentage(),
+	)
+
+	model := model{
+		list:          list,
+		timerProgress: progress,
+	}
 
 	// debug log
 	if len(os.Getenv("DEBUG")) > 0 {
-		f, err := tea.LogToFile("debug.log", "debug")
+		file, err := tea.LogToFile("debug.log", "debug")
 		if err != nil {
 			log.Println("fatal:", err)
 			os.Exit(1)
 		}
-		defer f.Close()
+		defer file.Close()
 	}
 
-	p := tea.NewProgram(m, tea.WithAltScreen())
-	if _, err := p.Run(); err != nil {
+	program := tea.NewProgram(model, tea.WithAltScreen())
+	if _, err := program.Run(); err != nil {
 		log.Fatalln("fatal:", err)
 		os.Exit(1)
 	}
