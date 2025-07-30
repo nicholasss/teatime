@@ -1,4 +1,4 @@
-module tea-timer
+module github.com/nicholasss/teatime
 
 go 1.24.3
 
